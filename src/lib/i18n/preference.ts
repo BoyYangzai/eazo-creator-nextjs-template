@@ -5,19 +5,16 @@ export const LOCALE_STORAGE_KEY = "eazo-app.locale.v1";
 
 export type LocalePreference = LocaleCode | "system";
 
-function isInsideEazoHost(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    (window.parent !== window || "ReactNativeWebView" in window)
-  );
+function isEmbeddedInFrame(): boolean {
+  return typeof window !== "undefined" && window.parent !== window;
 }
 
 /**
- * Inside an Eazo host "system" is the host's `device.locale`; the SDK only
- * snapshots the browser language, so standalone pages read `navigator`.
+ * In an iframe host (Creator preview) "system" is the host's `device.locale`;
+ * the SDK only snapshots the browser language, so other pages read `navigator`.
  */
 export function detectSystemLocale(): LocaleCode {
-  if (isInsideEazoHost()) {
+  if (isEmbeddedInFrame()) {
     const hostLocale = normalizeLocale(device.locale);
     if (hostLocale) return hostLocale;
   }
