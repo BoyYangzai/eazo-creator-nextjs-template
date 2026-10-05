@@ -66,3 +66,35 @@ test("updates a system locale when the browser language changes", async () => {
 
   expect(i18n.resolvedLanguage).toBe("zh-CN");
 });
+
+test("follows the Eazo host locale while the preference is system", async () => {
+  Object.defineProperty(browserWindow, "ReactNativeWebView", {
+    configurable: true,
+    value: { postMessage() {} },
+  });
+  const sendFromHost = async (message: Record<string, unknown>) => {
+    await act(async () => {
+      browserWindow.dispatchEvent(
+        new browserWindow.MessageEvent("message", {
+          data: JSON.stringify({ ch: "eazo-sdk", v: 1, ...message }),
+        }),
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  };
+
+  await act(async () => {
+    root.render(<LocaleSyncEffect />);
+  });
+
+  await sendFromHost({
+    t: "hello",
+    session: { authenticated: false, user: null, token: null },
+    device: { platform: "mobile", locale: "zh-CN" },
+    capabilities: [],
+  });
+  expect(i18n.resolvedLanguage).toBe("zh-CN");
+
+  await sendFromHost({ t: "evt", name: "device.changed", data: { locale: "en-US" } });
+  expect(i18n.resolvedLanguage).toBe("en-US");
+});

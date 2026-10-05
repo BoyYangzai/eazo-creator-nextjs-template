@@ -1,10 +1,27 @@
+import { device } from "@eazo/sdk";
 import { normalizeLocale, type LocaleCode } from "@/lib/i18n/locale";
 
 export const LOCALE_STORAGE_KEY = "eazo-app.locale.v1";
 
 export type LocalePreference = LocaleCode | "system";
 
+function isInsideEazoHost(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    (window.parent !== window || "ReactNativeWebView" in window)
+  );
+}
+
+/**
+ * Inside an Eazo host "system" is the host's `device.locale`; the SDK only
+ * snapshots the browser language, so standalone pages read `navigator`.
+ */
 export function detectSystemLocale(): LocaleCode {
+  if (isInsideEazoHost()) {
+    const hostLocale = normalizeLocale(device.locale);
+    if (hostLocale) return hostLocale;
+  }
+
   const browserLanguages =
     typeof navigator !== "undefined"
       ? [navigator.language, ...(navigator.languages ?? [])]
