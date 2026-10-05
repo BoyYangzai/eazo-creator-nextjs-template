@@ -174,4 +174,8 @@ body {
   html {
     @apply font-sans;
   }
+  /* Preflight's `margin: 0` removes the UA `margin: auto` that centers a modal <dialog>. */
+  dialog:modal {
+    margin: auto;
+  }
 }
